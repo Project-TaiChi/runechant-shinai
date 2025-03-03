@@ -1,0 +1,93 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "request": "launch",
+      "name": "Client",
+      "presentation": {
+        "group": "Mod Development - runechant-shinai",
+        "order": 0
+      },
+      "projectName": "runechant-shinai",
+      "mainClass": "net.neoforged.devlaunch.Main",
+      "args": [
+        "@E:\\minecraft-dev\\runechant-shinai\\build\\moddev\\clientRunProgramArgs.txt"
+      ],
+      "vmArgs": [
+        "@E:\\minecraft-dev\\runechant-shinai\\build\\moddev\\clientRunVmArgs.txt",
+        "-Dfml.modFolders\u003drunechant_shinai%%E:\\minecraft-dev\\runechant-shinai\\bin\\main"
+      ],
+      "cwd": "${workspaceFolder}\\run",
+      "env": {},
+      "console": "internalConsole",
+      "shortenCommandLine": "none"
+    },
+    {
+      "type": "java",
+      "request": "launch",
+      "name": "ClientData",
+      "presentation": {
+        "group": "Mod Development - runechant-shinai",
+        "order": 1
+      },
+      "projectName": "runechant-shinai",
+      "mainClass": "net.neoforged.devlaunch.Main",
+      "args": [
+        "@E:\\minecraft-dev\\runechant-shinai\\build\\moddev\\clientDataRunProgramArgs.txt"
+      ],
+      "vmArgs": [
+        "@E:\\minecraft-dev\\runechant-shinai\\build\\moddev\\clientDataRunVmArgs.txt",
+        "-Dfml.modFolders\u003drunechant_shinai%%E:\\minecraft-dev\\runechant-shinai\\bin\\main"
+      ],
+      "cwd": "${workspaceFolder}\\run",
+      "env": {},
+      "console": "internalConsole",
+      "shortenCommandLine": "none"
+    },
+    {
+      "type": "java",
+      "request": "launch",
+      "name": "GameTestServer",
+      "presentation": {
+        "group": "Mod Development - runechant-shinai",
+        "order": 2
+      },
+      "projectName": "runechant-shinai",
+      "mainClass": "net.neoforged.devlaunch.Main",
+      "args": [
+        "@E:\\minecraft-dev\\runechant-shinai\\build\\moddev\\gameTestServerRunProgramArgs.txt"
+      ],
+      "vmArgs": [
+        "@E:\\minecraft-dev\\runechant-shinai\\build\\moddev\\gameTestServerRunVmArgs.txt",
+        "-Dfml.modFolders\u003drunechant_shinai%%E:\\minecraft-dev\\runechant-shinai\\bin\\main"
+      ],
+      "cwd": "${workspaceFolder}\\run",
+      "env": {},
+      "console": "internalConsole",
+      "shortenCommandLine": "none"
+    },
+    {
+      "type": "java",
+      "request": "launch",
+      "name": "Server",
+      "presentation": {
+        "group": "Mod Development - runechant-shinai",
+        "order": 3
+      },
+      "projectName": "runechant-shinai",
+      "mainClass": "net.neoforged.devlaunch.Main",
+      "args": [
+        "@E:\\minecraft-dev\\runechant-shinai\\build\\moddev\\serverRunProgramArgs.txt"
+      ],
+      "vmArgs": [
+        "@E:\\minecraft-dev\\runechant-shinai\\build\\moddev\\serverRunVmArgs.txt",
+        "-Dfml.modFolders\u003drunechant_shinai%%E:\\minecraft-dev\\runechant-shinai\\bin\\main"
+      ],
+      "cwd": "${workspaceFolder}\\run",
+      "env": {},
+      "console": "internalConsole",
+      "shortenCommandLine": "none"
+    }
+  ]
+}
