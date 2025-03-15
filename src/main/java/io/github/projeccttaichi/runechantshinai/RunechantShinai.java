@@ -1,6 +1,10 @@
 package io.github.projeccttaichi.runechantshinai;
 
 import com.mojang.logging.LogUtils;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.JsonOps;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.projeccttaichi.runechantshinai.capability.PlayerManaImpl;
 import io.github.projeccttaichi.runechantshinai.config.ModConfig;
 import io.github.projeccttaichi.runechantshinai.constants.Ids;
@@ -19,6 +23,7 @@ import org.slf4j.Logger;
 public class RunechantShinai {
     private static final Logger LOGGER = LogUtils.getLogger();
 
+
     public RunechantShinai(IEventBus modEventBus, ModContainer container) {
         LOGGER.info("Initializing Runechant Shinai Mod");
         // 注册各种组件
@@ -27,6 +32,7 @@ public class RunechantShinai {
         ModRecipes.init(modEventBus);
         ModMenuTypes.init(modEventBus);
         ModEntities.init(modEventBus);
+        ModCreativeTabs.init(modEventBus);
         ModTags.init();
 
         // 注册配置文件
@@ -35,6 +41,9 @@ public class RunechantShinai {
         // 注册事件监听器
         modEventBus.addListener(this::registerCapabilities);
         modEventBus.addListener(ModNetwork::register);
+
+
+
 
     }
 

@@ -16,7 +16,7 @@
       ],
       "vmArgs": [
         "@E:\\minecraft-dev\\runechant-shinai\\build\\moddev\\clientRunVmArgs.txt",
-        "-Dfml.modFolders\u003drunechant_shinai%%E:\\minecraft-dev\\runechant-shinai\\bin\\main"
+        "-Dfml.modFolders\u003drunechantshinai%%E:\\minecraft-dev\\runechant-shinai\\bin\\main"
       ],
       "cwd": "${workspaceFolder}\\run",
       "env": {},
@@ -38,7 +38,7 @@
       ],
       "vmArgs": [
         "@E:\\minecraft-dev\\runechant-shinai\\build\\moddev\\clientDataRunVmArgs.txt",
-        "-Dfml.modFolders\u003drunechant_shinai%%E:\\minecraft-dev\\runechant-shinai\\bin\\main"
+        "-Dfml.modFolders\u003drunechantshinai%%E:\\minecraft-dev\\runechant-shinai\\bin\\main"
       ],
       "cwd": "${workspaceFolder}\\run",
       "env": {},
@@ -60,7 +60,7 @@
       ],
       "vmArgs": [
         "@E:\\minecraft-dev\\runechant-shinai\\build\\moddev\\gameTestServerRunVmArgs.txt",
-        "-Dfml.modFolders\u003drunechant_shinai%%E:\\minecraft-dev\\runechant-shinai\\bin\\main"
+        "-Dfml.modFolders\u003drunechantshinai%%E:\\minecraft-dev\\runechant-shinai\\bin\\main"
       ],
       "cwd": "${workspaceFolder}\\run",
       "env": {},
@@ -82,7 +82,7 @@
       ],
       "vmArgs": [
         "@E:\\minecraft-dev\\runechant-shinai\\build\\moddev\\serverRunVmArgs.txt",
-        "-Dfml.modFolders\u003drunechant_shinai%%E:\\minecraft-dev\\runechant-shinai\\bin\\main"
+        "-Dfml.modFolders\u003drunechantshinai%%E:\\minecraft-dev\\runechant-shinai\\bin\\main"
       ],
       "cwd": "${workspaceFolder}\\run",
       "env": {},
