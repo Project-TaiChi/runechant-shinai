@@ -34,19 +34,8 @@ public class ModTags {
     }
     
     public static class Items {
-        // 物品标签
-        public static final TagKey<Item> RUNES = tag("runes");
-        public static final TagKey<Item> EFFECT_RUNES = tag("effect_runes");
-        public static final TagKey<Item> MODIFIER_RUNES = tag("modifier_runes");
         
-        public static final TagKey<Item> CIRCUITS = tag("circuits");
-        public static final TagKey<Item> WANDS = tag("wands");
-        
-        public static final TagKey<Item> MANA_STONES = tag("mana_stones");
-        public static final TagKey<Item> CATALYSTS = tag("catalysts");
-        
-        // 工具标签
-        public static final TagKey<Item> RUNE_TOOLS = tag("rune_tools");
+        public static final TagKey<Item> RECORDS = tag("records");
         
         // 生成标签
         private static TagKey<Item> tag(String name) {

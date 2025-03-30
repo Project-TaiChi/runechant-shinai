@@ -33,12 +33,12 @@ public class HexGrids {
             return this.toCube().length();
         }
 
-        public long packed() {
-            return (long) this.q() << 32 | (this.r() & 0xFFFFFFFFL);
+        public int packed() {
+            return (this.q() << 16) | (this.r() & 0xFFFF);
         }
 
-        public static Axial unpacked(long packed) {
-            return new Axial((int) (packed >> 32), (int) packed);
+        public static Axial unpacked(int packed) {
+            return new Axial(packed >> 16, packed & 0xFFFF);
         }
 
     }

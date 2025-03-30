@@ -33,6 +33,8 @@ public class RunechantShinai {
         ModMenuTypes.init(modEventBus);
         ModEntities.init(modEventBus);
         ModCreativeTabs.init(modEventBus);
+        ModRecords.init(modEventBus);
+        ModComponents.init(modEventBus);
         ModTags.init();
 
         // 注册配置文件

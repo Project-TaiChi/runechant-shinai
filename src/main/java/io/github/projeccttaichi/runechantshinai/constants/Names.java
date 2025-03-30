@@ -1,5 +1,7 @@
 package io.github.projeccttaichi.runechantshinai.constants;
 
+import net.minecraft.resources.ResourceLocation;
+
 public class Names {
 
     public static String dotKey(String prefix, String tail) {
@@ -14,6 +16,15 @@ public class Names {
 
     public static String containerKey(String tail) {
         return dotKey("container", tail);
+    }
+
+    public static String recordKey(ResourceLocation loc) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("record.");
+        sb.append(loc.getNamespace());
+        sb.append(".");
+        sb.append(loc.getPath());
+        return sb.toString();
     }
 
 }

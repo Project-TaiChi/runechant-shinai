@@ -1,6 +1,7 @@
 package io.github.projeccttaichi.runechantshinai.init;
 
 import io.github.projeccttaichi.runechantshinai.constants.Ids;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.Entity;
@@ -15,7 +16,7 @@ import static io.github.projeccttaichi.runechantshinai.constants.Locations.modLo
 
 public class ModEntities {
     public static final DeferredRegister<EntityType<?>> ENTITIES = 
-            DeferredRegister.createEntities(Ids.MOD_ID);
+            DeferredRegister.create(BuiltInRegistries.ENTITY_TYPE, Ids.MOD_ID);
     
     // 注册法术实体
 
@@ -23,11 +24,8 @@ public class ModEntities {
         ENTITIES.register(eventBus);
     }
 
-    private static ResourceKey<EntityType<?>> entityKey(String name) {
-        return ResourceKey.create(Registries.ENTITY_TYPE, modLoc(name));
-    }
 
     private static <T extends Entity> Supplier<EntityType<T>> registerEntityType(String name, EntityType.Builder<T> builder) {
-        return () -> builder.build(entityKey(name));
+        return () -> builder.build(name);
     }
 }

@@ -1,20 +1,25 @@
 package io.github.projeccttaichi.runechantshinai.client.gui;
 
-import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.blaze3d.systems.RenderSystem;
+import io.github.projeccttaichi.runechantshinai.client.sprites.RecordAssemblerWidgets;
+import io.github.projeccttaichi.runechantshinai.client.util.GuiGraphicsUtil;
+import io.github.projeccttaichi.runechantshinai.constants.Ids;
 import io.github.projeccttaichi.runechantshinai.menu.RecordAssemblerMenu;
-import io.github.projeccttaichi.runechantshinai.network.c2s.HexSlotAction;
+import io.github.projeccttaichi.runechantshinai.network.c2s.CustomSlotAction;
 import io.github.projeccttaichi.runechantshinai.util.HexGrids;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ContainerScreenEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.joml.Matrix2d;
 import org.joml.Vector2d;
-import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,18 +27,20 @@ import java.util.Optional;
 
 import static io.github.projeccttaichi.runechantshinai.constants.Locations.guiLoc;
 
+
+@EventBusSubscriber(modid = Ids.MOD_ID, value = Dist.CLIENT)
 public class RecordAssemblerScreen extends AbstractContainerScreen<RecordAssemblerMenu> {
-    private static final int IMAGE_WIDTH = 212;
-    private static final int IMAGE_HEIGHT = 199;
+    private static final int IMAGE_WIDTH = 320;
+    private static final int IMAGE_HEIGHT = 300;
 
     private static final int GRID_WIDTH = 26;
     private static final int GRID_HEIGHT = 28;
     private static final int GRID_SIZE = 28;
 
-    private static final int VIEWPORT_WIDTH = 142;
-    private static final int VIEWPORT_HEIGHT = 84;
+    private static final int VIEWPORT_WIDTH = 210;
+    private static final int VIEWPORT_HEIGHT = 182;
 
-    private static final int VIEWPORT_TOP_LEFT_X = 62;
+    private static final int VIEWPORT_TOP_LEFT_X = 102;
     private static final int VIEWPORT_TOP_LEFT_Y = 9;
 
     private static final int HORIZONTAL_SPACING = GRID_WIDTH + 2;
@@ -53,7 +60,7 @@ public class RecordAssemblerScreen extends AbstractContainerScreen<RecordAssembl
     }
 
 
-    private static final ResourceLocation BACKGROUND_LOCATION = guiLoc("container/record_assembler.png");
+    private static final ResourceLocation BACKGROUND_LOCATION = guiLoc("container/record-assembler-bg.png");
 
     private double translateX = 0.0f;
     private double translateY = 0.0f;
@@ -76,11 +83,11 @@ public class RecordAssemblerScreen extends AbstractContainerScreen<RecordAssembl
     @Override
     protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
 
-        graphics.blit(RenderType::guiTextured, BACKGROUND_LOCATION,
+        graphics.blit(BACKGROUND_LOCATION,
                 this.leftPos, this.topPos,
                 0, 0,
                 this.imageWidth, this.imageHeight,
-                256, 256
+                320, 300
         );
 
 
@@ -120,12 +127,89 @@ public class RecordAssemblerScreen extends AbstractContainerScreen<RecordAssembl
         this.renderTooltip(graphics, mouseX, mouseY);
     }
 
-    @Override
-    protected void renderSlots(GuiGraphics graphics) {
-        super.renderSlots(graphics);
+    @SubscribeEvent
+    private static void onRenderForeground(ContainerScreenEvent.Render.Foreground event) {
+        if (!(event.getContainerScreen() instanceof RecordAssemblerScreen)) {
+            return;
+        }
+
+        RecordAssemblerScreen screen = (RecordAssemblerScreen) event.getContainerScreen();
+        screen.renderRecordChestSlots(event.getGuiGraphics());
+        screen.renderScrollBarIndicator(event.getGuiGraphics());
+        screen.renderHexGridSlots(event.getGuiGraphics());
+
+    }
+
+    private int currentScroll = 0;
+    private static final int CHEST_VIEW_SLOT_ROWS = 6;
+    private static final int CHEST_VIEW_SLOT_COLS = 3;
+    private static final int MAX_CHEST_VIEW_SLOTS = CHEST_VIEW_SLOT_COLS * CHEST_VIEW_SLOT_ROWS;
+
+    private void renderScrollBarIndicator(GuiGraphics graphics) {
+        final int SCROLL_BAR_HEIGHT = 150;
+        final int SCROLL_BAR_TOP_LEFT_X = 88;
+        final int SCROLL_BAR_TOP_LEFT_Y = 40;
+        final int SCROLL_BAR_INDICATOR_HEIGHT = RecordAssemblerWidgets.TOOL_SCROLLBAR_INDICATOR.height();
+
+        int totalSlots = this.menu.getSlotChestSize();
+
+        int overflowSlots = totalSlots - MAX_CHEST_VIEW_SLOTS;
+
+        int indicatorPos = SCROLL_BAR_TOP_LEFT_Y;
+        if (overflowSlots > 0) {
+            // compute scroll bar
+            int scrollSteps = (overflowSlots + CHEST_VIEW_SLOT_COLS - 1) / CHEST_VIEW_SLOT_COLS;
+
+            int currentScroll = Math.clamp(this.currentScroll, 0, scrollSteps);
+
+            indicatorPos = SCROLL_BAR_TOP_LEFT_Y + (SCROLL_BAR_HEIGHT - SCROLL_BAR_INDICATOR_HEIGHT) * currentScroll / scrollSteps;
+        }
+        RecordAssemblerWidgets.TOOL_SCROLLBAR_INDICATOR.blit(graphics, SCROLL_BAR_TOP_LEFT_X, indicatorPos);
+    }
+
+    private int getChestViewSlotIndex(int row, int col) {
+        int viewIndex = row * CHEST_VIEW_SLOT_COLS + col;
+        return viewIndex + this.currentScroll * CHEST_VIEW_SLOT_COLS;
+    }
 
 
-        graphics.enableScissor(VIEWPORT_TOP_LEFT_X, VIEWPORT_TOP_LEFT_Y, VIEWPORT_TOP_LEFT_X + VIEWPORT_WIDTH, VIEWPORT_TOP_LEFT_Y + VIEWPORT_HEIGHT);
+    private void renderRecordChestSlots(GuiGraphics graphics) {
+
+        final int SLOT_SIZE = 18;
+        final int SLOT_SPACING = 4;
+
+        final int CHEST_TOP_LEFT_X = 20;
+        final int CHEST_TOP_LEFT_Y = 58;
+
+        for (int i = 0; i < CHEST_VIEW_SLOT_ROWS; i++) {
+            for (int j = 0; j < CHEST_VIEW_SLOT_COLS; j++) {
+                int slotIndex = getChestViewSlotIndex(i, j);
+
+                if (slotIndex >= this.menu.getSlotChestSize()) {
+                    break;
+                }
+
+                int x = CHEST_TOP_LEFT_X + j * (SLOT_SIZE + SLOT_SPACING);
+                int y = CHEST_TOP_LEFT_Y + i * (SLOT_SIZE + SLOT_SPACING);
+
+
+                ItemStack stack = this.menu.getSlotChestStack(slotIndex);
+                if (stack.isEmpty()) {
+                    continue;
+                }
+
+                graphics.renderItem(stack, x + 1, y + 1);
+            }
+        }
+
+
+    }
+
+    private void renderHexGridSlots(GuiGraphics graphics) {
+
+
+//        graphics.enableScissor(VIEWPORT_TOP_LEFT_X, VIEWPORT_TOP_LEFT_Y, VIEWPORT_TOP_LEFT_X + VIEWPORT_WIDTH, VIEWPORT_TOP_LEFT_Y + VIEWPORT_HEIGHT);
+        GuiGraphicsUtil.enableScissorTransformed(graphics, VIEWPORT_TOP_LEFT_X, VIEWPORT_TOP_LEFT_Y, VIEWPORT_TOP_LEFT_X + VIEWPORT_WIDTH, VIEWPORT_TOP_LEFT_Y + VIEWPORT_HEIGHT);
 
         graphics.pose().pushPose();
         graphics.pose().translate(VIEWPORT_CENTER_X, VIEWPORT_CENTER_Y, 0);
@@ -166,15 +250,10 @@ public class RecordAssemblerScreen extends AbstractContainerScreen<RecordAssembl
         int x = doubledOffset.col() * HORIZONTAL_SPACING / 2;
         int y = doubledOffset.row() * VERTICAL_SPACING;
 
-        final int uOffset = 212;
-        final int vOffset = 29;
+        RenderSystem.enableBlend();
 
-        graphics.blit(RenderType::guiTextured, BACKGROUND_LOCATION,
-                x, y,
-                uOffset, vOffset,
-                GRID_WIDTH, GRID_HEIGHT,
-                256, 256
-        );
+        RecordAssemblerWidgets.HEX_SLOT_HIGHLIGHT_FG.blit(graphics, x, y);
+        RenderSystem.disableBlend();
     }
 
     @Override
@@ -190,7 +269,7 @@ public class RecordAssemblerScreen extends AbstractContainerScreen<RecordAssembl
                 tooltips.addAll(tooltipFromContainerItem);
             }
 
-            guiGraphics.renderTooltip(this.font, tooltips, Optional.empty(), x, y, null);
+            guiGraphics.renderTooltip(this.font, tooltips, Optional.empty(), x, y);
 
         }
     }
@@ -199,10 +278,6 @@ public class RecordAssemblerScreen extends AbstractContainerScreen<RecordAssembl
 
         int x0 = this.leftPos + VIEWPORT_TOP_LEFT_X;
         int y0 = this.topPos + VIEWPORT_TOP_LEFT_Y;
-
-
-        final int uOffset = 212;
-        final int vOffset = 0;
 
 
         graphics.enableScissor(x0, y0, x0 + VIEWPORT_WIDTH, y0 + VIEWPORT_HEIGHT);
@@ -243,12 +318,14 @@ public class RecordAssemblerScreen extends AbstractContainerScreen<RecordAssembl
             int y = doubledOffset.row() * VERTICAL_SPACING;
 
 
-            graphics.blit(RenderType::guiTextured, BACKGROUND_LOCATION,
-                    x, y,
-                    uOffset, vOffset,
-                    GRID_WIDTH, GRID_HEIGHT,
-                    256, 256
-            );
+//            graphics.blit(RenderType::guiTextured, BACKGROUND_LOCATION,
+//                    x, y,
+//                    uOffset, vOffset,
+//                    GRID_WIDTH, GRID_HEIGHT,
+//                    256, 256
+//            );
+
+            RecordAssemblerWidgets.HEX_SLOT_ACTIVATE.blit(graphics, x, y);
 
         }
 
@@ -342,9 +419,9 @@ public class RecordAssemblerScreen extends AbstractContainerScreen<RecordAssembl
         ItemStack carried = this.menu.getCarried();
         if (release || carried.isEmpty()) {
             if (hasShiftDown()) {
-                PacketDistributor.sendToServer(new HexSlotAction(this.menu.containerId, this.menu.getStateId(), axial, HexSlotAction.Action.QUICK_MOVE));
+                PacketDistributor.sendToServer(new CustomSlotAction(this.menu.containerId, 0, axial.packed(), CustomSlotAction.Action.QUICK_MOVE, CustomSlotAction.PickType.SINGLE));
             } else {
-                PacketDistributor.sendToServer(new HexSlotAction(this.menu.containerId, this.menu.getStateId(), axial, HexSlotAction.Action.PICK_OR_REPLACE));
+                PacketDistributor.sendToServer(new CustomSlotAction(this.menu.containerId, 0, axial.packed(), CustomSlotAction.Action.PICK_OR_REPLACE, CustomSlotAction.PickType.SINGLE));
             }
 
             if (!release) {
@@ -383,4 +460,30 @@ public class RecordAssemblerScreen extends AbstractContainerScreen<RecordAssembl
 //
 //        return false;
 //    }
+
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if(super.mouseScrolled(mouseX, mouseY, scrollX, scrollY)) {
+            return true;
+        }
+
+        final int CHEST_SCROLL_RANGE_TOP_LEFT_X = 15;
+        final int CHEST_SCROLL_RANGE_TOP_LEFT_Y = 37;
+        final int CHEST_SCROLL_RANGE_WIDTH = 80;
+        final int CHEST_SCROLL_RANGE_HEIGHT = 156;
+
+        if(mouseX >= this.leftPos + CHEST_SCROLL_RANGE_TOP_LEFT_X && mouseX <= this.leftPos + CHEST_SCROLL_RANGE_TOP_LEFT_X + CHEST_SCROLL_RANGE_WIDTH &&
+                mouseY >= this.topPos + CHEST_SCROLL_RANGE_TOP_LEFT_Y && mouseY <= this.topPos + CHEST_SCROLL_RANGE_TOP_LEFT_Y + CHEST_SCROLL_RANGE_HEIGHT) {
+
+            int maxScroll = (this.menu.getSlotChestSize() - MAX_CHEST_VIEW_SLOTS + CHEST_VIEW_SLOT_COLS - 1) / CHEST_VIEW_SLOT_COLS;
+            this.currentScroll = Math.clamp(this.currentScroll - (int) scrollY, 0, maxScroll);
+
+            return true;
+        }
+
+
+
+        return true;
+    }
 }

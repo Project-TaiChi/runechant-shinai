@@ -2,8 +2,6 @@ package io.github.projeccttaichi.runechantshinai.network.s2c;
 
 import io.github.projeccttaichi.runechantshinai.menu.RecordAssemblerMenu;
 import io.github.projeccttaichi.runechantshinai.util.HexGrids;
-import io.netty.buffer.ByteBuf;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -14,23 +12,23 @@ import org.jetbrains.annotations.NotNull;
 
 import static io.github.projeccttaichi.runechantshinai.constants.Locations.modLoc;
 
-public record SyncHexSlots(
+public record SyncCustomSlots(
         int containerId,
-        HexGrids.Axial position,
+        int slotType,
+        int slotId,
         ItemStack itemStack
 ) implements CustomPacketPayload {
-    public static final CustomPacketPayload.Type<SyncHexSlots> TYPE = new CustomPacketPayload.Type<>(modLoc("sync_hex_slots"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, SyncHexSlots> STREAM_CODEC = StreamCodec.composite(
+    public static final CustomPacketPayload.Type<SyncCustomSlots> TYPE = new CustomPacketPayload.Type<>(modLoc("sync_custom_slots"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, SyncCustomSlots> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_INT,
-            SyncHexSlots::containerId,
-            ByteBufCodecs.VAR_LONG.map(
-                    HexGrids.Axial::unpacked,
-                    HexGrids.Axial::packed
-            ),
-            SyncHexSlots::position,
+            SyncCustomSlots::containerId,
+            ByteBufCodecs.VAR_INT,
+            SyncCustomSlots::slotType,
+            ByteBufCodecs.VAR_INT,
+            SyncCustomSlots::slotId,
             ItemStack.OPTIONAL_STREAM_CODEC,
-            SyncHexSlots::itemStack,
-            SyncHexSlots::new
+            SyncCustomSlots::itemStack,
+            SyncCustomSlots::new
     );
 
     @Override
@@ -50,7 +48,7 @@ public record SyncHexSlots(
             return;
         }
 
-        menu.handleSyncHexSlot(this.position(), this.itemStack());
+        menu.handleSyncCustomSlot(this.slotType(), this.slotId(), this.itemStack());
 
     }
 }

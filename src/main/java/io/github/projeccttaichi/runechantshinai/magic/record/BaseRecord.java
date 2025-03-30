@@ -28,5 +28,4 @@ public class BaseRecord {
     protected float delay;
 
 
-
 }

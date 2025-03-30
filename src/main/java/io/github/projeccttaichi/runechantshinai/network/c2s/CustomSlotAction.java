@@ -1,13 +1,11 @@
 package io.github.projeccttaichi.runechantshinai.network.c2s;
 
 import io.github.projeccttaichi.runechantshinai.menu.RecordAssemblerMenu;
-import io.github.projeccttaichi.runechantshinai.util.HexGrids;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.util.ByIdMap;
-import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jetbrains.annotations.NotNull;
 
@@ -15,13 +13,12 @@ import java.util.function.IntFunction;
 
 import static io.github.projeccttaichi.runechantshinai.constants.Locations.modLoc;
 
-public record HexSlotAction(
+public record CustomSlotAction(
         int containerId,
-        int stateId,
-        HexGrids.Axial position,
-        Action action
-
-
+        int slotGroup,
+        int slotId,
+        Action action,
+        PickType pickType
 ) implements CustomPacketPayload {
 
 
@@ -31,28 +28,39 @@ public record HexSlotAction(
         CLEAR
     }
 
+    public enum PickType {
+        SINGLE,
+        HALF,
+        ALL
+    }
+
     public static final IntFunction<Action> ACTION_BY_ID =
             ByIdMap.continuous(
                     Action::ordinal,
                     Action.values(),
                     ByIdMap.OutOfBoundsStrategy.ZERO
             );
+    public static final IntFunction<PickType> PICK_TYPE_BY_ID =
+            ByIdMap.continuous(
+                    PickType::ordinal,
+                    PickType.values(),
+                    ByIdMap.OutOfBoundsStrategy.ZERO
+            );
 
-    public static final CustomPacketPayload.Type<HexSlotAction> TYPE = new CustomPacketPayload.Type<>(modLoc("hex_slot_action"));
+    public static final CustomPacketPayload.Type<CustomSlotAction> TYPE = new CustomPacketPayload.Type<>(modLoc("custom_slot_action"));
 
-    public static final StreamCodec<ByteBuf, HexSlotAction> STREAM_CODEC = StreamCodec.composite(
+    public static final StreamCodec<ByteBuf, CustomSlotAction> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_INT,
-            HexSlotAction::containerId,
+            CustomSlotAction::containerId,
             ByteBufCodecs.VAR_INT,
-            HexSlotAction::stateId,
-            ByteBufCodecs.VAR_LONG.map(
-                    HexGrids.Axial::unpacked,
-                    HexGrids.Axial::packed
-            ),
-            HexSlotAction::position,
+            CustomSlotAction::slotGroup,
+            ByteBufCodecs.VAR_INT,
+            CustomSlotAction::slotId,
             ByteBufCodecs.idMapper(ACTION_BY_ID, Action::ordinal),
-            HexSlotAction::action,
-            HexSlotAction::new
+            CustomSlotAction::action,
+            ByteBufCodecs.idMapper(PICK_TYPE_BY_ID, PickType::ordinal),
+            CustomSlotAction::pickType,
+            CustomSlotAction::new
     );
 
     @Override
@@ -69,13 +77,11 @@ public record HexSlotAction(
         }
 
 
-        if (menu.containerId != this.containerId() || menu.getStateId() != this.stateId()) {
+        if (menu.containerId != this.containerId()) {
             return;
         }
 
-        menu.handleHexSlotAction(ctx, this);
-
-
+        menu.handleCustomSlotAction(ctx, this);
 
     }
 }
