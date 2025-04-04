@@ -26,7 +26,7 @@
     {
       "type": "java",
       "request": "launch",
-      "name": "ClientData",
+      "name": "Data",
       "presentation": {
         "group": "Mod Development - runechant-shinai",
         "order": 1
@@ -34,10 +34,10 @@
       "projectName": "runechant-shinai",
       "mainClass": "net.neoforged.devlaunch.Main",
       "args": [
-        "@E:\\minecraft-dev\\runechant-shinai\\build\\moddev\\clientDataRunProgramArgs.txt"
+        "@E:\\minecraft-dev\\runechant-shinai\\build\\moddev\\dataRunProgramArgs.txt"
       ],
       "vmArgs": [
-        "@E:\\minecraft-dev\\runechant-shinai\\build\\moddev\\clientDataRunVmArgs.txt",
+        "@E:\\minecraft-dev\\runechant-shinai\\build\\moddev\\dataRunVmArgs.txt",
         "-Dfml.modFolders\u003drunechantshinai%%E:\\minecraft-dev\\runechant-shinai\\bin\\main"
       ],
       "cwd": "${workspaceFolder}\\run",
