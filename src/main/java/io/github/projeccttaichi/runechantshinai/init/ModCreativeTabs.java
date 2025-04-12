@@ -29,6 +29,7 @@ public class ModCreativeTabs {
             //Add your items to the tab.
             .displayItems((params, output) -> {
                 output.accept(new ItemStack(ModBlocks.RECORD_ASSEMBLER.asItem()));
+                output.accept(new ItemStack(ModBlocks.RECORD_CHEST.asItem()));
                 addRecords(params, output);
             })
             .build()

@@ -2,10 +2,10 @@ package io.github.projeccttaichi.runechantshinai.block;
 
 import com.mojang.serialization.MapCodec;
 import io.github.projeccttaichi.runechantshinai.block.entity.RecordChestBlockEntity;
-import io.github.projeccttaichi.runechantshinai.capability.RecordStorageHandler;
 import io.github.projeccttaichi.runechantshinai.init.ModBlockEntities;
-import io.github.projeccttaichi.runechantshinai.init.ModCapabilities;
+import io.github.projeccttaichi.runechantshinai.init.ModMenuTypes;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -15,12 +15,13 @@ import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-import net.neoforged.neoforge.capabilities.BlockCapability;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.IBlockCapabilityProvider;
+import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class RecordChestBlock extends BaseEntityBlock implements IBlockCapabilityProvider<RecordStorageHandler, Void> {
+public class RecordChestBlock extends BaseEntityBlock implements IBlockCapabilityProvider<IItemHandler, Void> {
     public static final MapCodec<RecordChestBlock> CODEC = simpleCodec(RecordChestBlock::new);
 
     public RecordChestBlock(Properties properties) {
@@ -48,7 +49,7 @@ public class RecordChestBlock extends BaseEntityBlock implements IBlockCapabilit
         if (!level.isClientSide) {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof RecordChestBlockEntity recordChest) {
-                // TODO: 打开GUI
+                player.openMenu(recordChest);
                 return InteractionResult.CONSUME;
             }
         }
@@ -60,7 +61,7 @@ public class RecordChestBlock extends BaseEntityBlock implements IBlockCapabilit
         if (!state.is(newState.getBlock())) {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof RecordChestBlockEntity recordChest) {
-                // TODO: 掉落物品
+                recordChest.clearContent();
             }
             super.onRemove(state, level, pos, newState, isMoving);
         }
@@ -68,7 +69,7 @@ public class RecordChestBlock extends BaseEntityBlock implements IBlockCapabilit
 
     @Nullable
     @Override
-    public RecordStorageHandler getCapability(Level level, BlockPos pos, BlockState state, @Nullable BlockEntity be, Void context) {
+    public IItemHandler getCapability(Level level, BlockPos pos, BlockState state, @Nullable BlockEntity be, Void context) {
         if (be instanceof RecordChestBlockEntity recordChest) {
             return recordChest.getInventory();
         }

@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
-public class RecordAssemblerMenu extends AbstractContainerMenu {
+public class RecordAssemblerMenu extends AbstractContainerMenu implements CustomSlotHandler {
 
     static class HexSlot {
         HexGrids.Axial position;
@@ -353,6 +353,7 @@ public class RecordAssemblerMenu extends AbstractContainerMenu {
     private static final int SLOT_GROUP_HEX = 0;
     private static final int SLOT_GROUP_STORAGE = 1;
 
+    @Override
     public void handleCustomSlotAction(IPayloadContext ctx, CustomSlotAction hexSlotAction) {
         ItemStack carried = this.getCarried();
 
@@ -437,7 +438,13 @@ public class RecordAssemblerMenu extends AbstractContainerMenu {
         }
     }
 
+    @Override
+    public void onUpdated() {
 
+    }
+
+
+    @Override
     public void handleSyncCustomSlot(int slotType, int slotId, ItemStack itemStack) {
         switch(slotType) {
             case SLOT_GROUP_HEX -> {

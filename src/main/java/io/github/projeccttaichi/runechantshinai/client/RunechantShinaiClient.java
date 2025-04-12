@@ -2,6 +2,7 @@ package io.github.projeccttaichi.runechantshinai.client;
 
 import com.mojang.logging.LogUtils;
 import io.github.projeccttaichi.runechantshinai.client.gui.RecordAssemblerScreen;
+import io.github.projeccttaichi.runechantshinai.client.gui.RecordChestScreen;
 import io.github.projeccttaichi.runechantshinai.constants.Ids;
 import io.github.projeccttaichi.runechantshinai.init.ModMenuTypes;
 import net.neoforged.api.distmarker.Dist;
@@ -26,5 +27,6 @@ public class RunechantShinaiClient {
     // Event is listened to on the mod event bus
     private void registerScreens(RegisterMenuScreensEvent event) {
         event.register(ModMenuTypes.RECORD_ASSEMBLER.get(), RecordAssemblerScreen::new);
+        event.register(ModMenuTypes.RECORD_CHEST.get(), RecordChestScreen::new);
     }
 }

@@ -1,5 +1,6 @@
 package io.github.projeccttaichi.runechantshinai.network.s2c;
 
+import io.github.projeccttaichi.runechantshinai.menu.CustomSlotHandler;
 import io.github.projeccttaichi.runechantshinai.menu.RecordAssemblerMenu;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -17,7 +18,8 @@ import static io.github.projeccttaichi.runechantshinai.constants.Locations.modLo
 
 public record BatchSyncCustomSlots(
         int containerId,
-        Map<Integer, List<Entry>> data
+        Map<Integer, List<Entry>> data,
+        boolean isClear
 ) implements CustomPacketPayload {
     public static final Type<BatchSyncCustomSlots> TYPE = new Type<>(modLoc("batch_sync_custom_slots"));
 
@@ -44,6 +46,8 @@ public record BatchSyncCustomSlots(
                     Entry.STREAM_CODEC.apply(ByteBufCodecs.list())
             ),
             BatchSyncCustomSlots::data,
+            ByteBufCodecs.BOOL,
+            BatchSyncCustomSlots::isClear,
             BatchSyncCustomSlots::new
     );
 
@@ -56,12 +60,12 @@ public record BatchSyncCustomSlots(
 
     public void handle(IPayloadContext ctx) {
 
-        if (!(ctx.player().containerMenu instanceof RecordAssemblerMenu menu)) {
+        if (!(ctx.player().containerMenu instanceof CustomSlotHandler menu)) {
             return;
         }
 
 
-        if (menu.containerId != this.containerId()) {
+        if (ctx.player().containerMenu.containerId != this.containerId()) {
             return;
         }
 
@@ -71,6 +75,8 @@ public record BatchSyncCustomSlots(
                 menu.handleSyncCustomSlot(entry.getKey(), e.slotId(), e.itemStack());
             }
         }
+
+        menu.onUpdated();
 
     }
 }

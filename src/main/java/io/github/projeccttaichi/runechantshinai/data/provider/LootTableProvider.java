@@ -30,6 +30,7 @@ public class LootTableProvider extends net.minecraft.data.loot.LootTableProvider
         @Override
         protected void generate() {
             this.dropSelf(ModBlocks.RECORD_ASSEMBLER.get());
+            this.dropSelf(ModBlocks.RECORD_CHEST.get());
         }
 
         @Nonnull

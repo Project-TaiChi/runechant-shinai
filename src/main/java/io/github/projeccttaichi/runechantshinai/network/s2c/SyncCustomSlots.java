@@ -1,5 +1,6 @@
 package io.github.projeccttaichi.runechantshinai.network.s2c;
 
+import io.github.projeccttaichi.runechantshinai.menu.CustomSlotHandler;
 import io.github.projeccttaichi.runechantshinai.menu.RecordAssemblerMenu;
 import io.github.projeccttaichi.runechantshinai.util.HexGrids;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -39,16 +40,17 @@ public record SyncCustomSlots(
 
     public void handle(IPayloadContext ctx) {
 
-        if (!(ctx.player().containerMenu instanceof RecordAssemblerMenu menu)) {
+        if (!(ctx.player().containerMenu instanceof CustomSlotHandler menu)) {
             return;
         }
 
 
-        if (menu.containerId != this.containerId()) {
+        if (ctx.player().containerMenu.containerId != this.containerId()) {
             return;
         }
 
         menu.handleSyncCustomSlot(this.slotType(), this.slotId(), this.itemStack());
+        menu.onUpdated();
 
     }
 }

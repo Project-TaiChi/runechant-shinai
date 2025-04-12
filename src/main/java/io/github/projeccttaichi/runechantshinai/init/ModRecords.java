@@ -35,6 +35,11 @@ public class ModRecords {
         eventBus.addListener(ModRecords::registerRegistries);
         RECORDS.register(eventBus);
 
+
+        // generate 100 test records
+        for (int i = 0; i < 100; i++) {
+            RECORDS.register("test_" + i, BaseRecord::new);
+        }
     }
 
     public static final DeferredRegister<BaseRecord> RECORDS = DeferredRegister.create(RECORD_REGISTRY, Ids.MOD_ID);

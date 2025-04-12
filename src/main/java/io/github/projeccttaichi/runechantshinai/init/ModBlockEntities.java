@@ -13,7 +13,7 @@ public class ModBlockEntities {
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<RecordChestBlockEntity>> RECORD_CHEST = 
         BLOCK_ENTITIES.register("record_chest", () -> 
-            BlockEntityType.Builder.of(RecordChestBlockEntity::new, ModBlocks.RECORD_ASSEMBLER.get()).build(null));
+            BlockEntityType.Builder.of(RecordChestBlockEntity::new, ModBlocks.RECORD_CHEST.get()).build(null));
 
     public static void init(IEventBus modEventBus) {
         BLOCK_ENTITIES.register(modEventBus);

@@ -100,6 +100,23 @@ public class RecordStorageHandler implements IItemHandlerModifiable, INBTSeriali
 
     }
 
+    public ItemStack insetAuto(ItemStack stack, boolean simulate) {
+
+        var component = stack.get(ModComponents.RECORD_COMPONENT.get());
+
+        if (component == null) {
+            return stack;
+        }
+        int index = ModRecords.RECORD_REGISTRY.getId(component.id());
+
+        if (index == -1) {
+            return stack;
+        }
+
+        return insertItem(index, stack, simulate);
+
+    }
+
     public void onContentsChanged(int slot) {
         // Do nothing
     }
@@ -144,19 +161,15 @@ public class RecordStorageHandler implements IItemHandlerModifiable, INBTSeriali
         return true;
     }
 
-
     public static final Codec<ItemStack> NON_LIMIT_ITEM_CODEC = Codec.lazyInitialized(
             () -> RecordCodecBuilder.create(
                     p_347288_ -> p_347288_.group(
-                                    ItemStack.ITEM_NON_AIR_CODEC.fieldOf("id").forGetter(ItemStack::getItemHolder),
-                                    Codec.INT.fieldOf("count").orElse(1).forGetter(ItemStack::getCount),
-                                    DataComponentPatch.CODEC
-                                            .optionalFieldOf("components", DataComponentPatch.EMPTY)
-                                            .forGetter(ItemStack::getComponentsPatch)
-                            )
-                            .apply(p_347288_, ItemStack::new)
-            )
-    );
+                            ItemStack.ITEM_NON_AIR_CODEC.fieldOf("id").forGetter(ItemStack::getItemHolder),
+                            Codec.INT.fieldOf("count").orElse(1).forGetter(ItemStack::getCount),
+                            DataComponentPatch.CODEC
+                                    .optionalFieldOf("components", DataComponentPatch.EMPTY)
+                                    .forGetter(ItemStack::getComponentsPatch))
+                            .apply(p_347288_, ItemStack::new)));
 
     public CompoundTag serializeNBT(HolderLookup.Provider provider) {
         ListTag nbtTagList = new ListTag();
@@ -168,7 +181,8 @@ public class RecordStorageHandler implements IItemHandlerModifiable, INBTSeriali
                 ResourceLocation name = getRecordName(i);
                 Objects.requireNonNull(name);
                 itemTag.putString("Name", name.toString());
-                var resultTag = DataComponentUtil.wrapEncodingExceptions(stack, NON_LIMIT_ITEM_CODEC, provider, itemTag);
+                var resultTag = DataComponentUtil.wrapEncodingExceptions(stack, NON_LIMIT_ITEM_CODEC, provider,
+                        itemTag);
                 nbtTagList.add(resultTag);
             }
         }
@@ -180,7 +194,7 @@ public class RecordStorageHandler implements IItemHandlerModifiable, INBTSeriali
 
     public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
 
-        ListTag tagList = nbt.getList("Items", Tag.TAG_COMPOUND);
+        ListTag tagList = nbt.getList("Records", Tag.TAG_COMPOUND);
 
         for (int i = 0; i < tagList.size(); ++i) {
             CompoundTag itemTags = tagList.getCompound(i);
