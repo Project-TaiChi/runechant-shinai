@@ -4,6 +4,7 @@ import io.github.projeccttaichi.runechantshinai.capability.PlayerMana;
 import io.github.projeccttaichi.runechantshinai.capability.PlayerManaImpl;
 import net.minecraft.world.entity.EntityType;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.EntityCapability;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 
@@ -19,5 +20,13 @@ public class ModCapabilities {
     private static void registerCapabilities(RegisterCapabilitiesEvent event) {
         // 注册玩家法力值能力
         event.registerEntity(PLAYER_MANA_ENTITY_CAPABILITY, EntityType.PLAYER, (player, context) -> new PlayerManaImpl(player));
+
+        // 注册箱子
+        event.registerBlock(
+                Capabilities.ItemHandler.BLOCK,
+                ModBlocks.RECORD_CHEST.get(),
+                ModBlocks.RECORD_CHEST.get()
+        );
+
     }
 }

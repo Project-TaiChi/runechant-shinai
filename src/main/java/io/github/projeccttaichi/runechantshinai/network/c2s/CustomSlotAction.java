@@ -1,5 +1,6 @@
 package io.github.projeccttaichi.runechantshinai.network.c2s;
 
+import io.github.projeccttaichi.runechantshinai.menu.CustomSlotHandler;
 import io.github.projeccttaichi.runechantshinai.menu.RecordAssemblerMenu;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -72,12 +73,12 @@ public record CustomSlotAction(
 
     public void handle(IPayloadContext ctx) {
 
-        if (!(ctx.player().containerMenu instanceof RecordAssemblerMenu menu)) {
+        if (!(ctx.player().containerMenu instanceof CustomSlotHandler menu)) {
             return;
         }
 
 
-        if (menu.containerId != this.containerId()) {
+        if (ctx.player().containerMenu.containerId != this.containerId()) {
             return;
         }
 

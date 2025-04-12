@@ -2,7 +2,7 @@ package io.github.projeccttaichi.runechantshinai.constants;
 
 import net.minecraft.resources.ResourceLocation;
 
-public class Names {
+public final class Names {
 
     public static String dotKey(String prefix, String tail) {
         StringBuilder sb = new StringBuilder();
@@ -24,6 +24,18 @@ public class Names {
         sb.append(loc.getNamespace());
         sb.append(".");
         sb.append(loc.getPath());
+        return sb.toString();
+    }
+
+
+    public static String recordKey(ResourceLocation loc, String suffix) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("record.");
+        sb.append(loc.getNamespace());
+        sb.append(".");
+        sb.append(loc.getPath());
+        sb.append(".");
+        sb.append(suffix);
         return sb.toString();
     }
 

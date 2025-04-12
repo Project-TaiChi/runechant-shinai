@@ -14,14 +14,12 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class RecordChestMenu extends AbstractContainerMenu implements CustomSlotHandler {
     private final ContainerLevelAccess access;
@@ -29,12 +27,16 @@ public class RecordChestMenu extends AbstractContainerMenu implements CustomSlot
     private final RecordStorageHandler recordStorage;
     private final HashMap<Integer, ItemStack> clientRecords;
 
+    private RecordListModel model = null;
+
     public RecordChestMenu(int containerId, Inventory playerInventory) {
         this(containerId, playerInventory, null, new RecordStorageHandler(), ContainerLevelAccess.NULL);
+
+        this.model = new RecordListModel(recordStorage);
     }
 
     public RecordChestMenu(int containerId, Inventory playerInventory, Player player, RecordStorageHandler handler,
-            ContainerLevelAccess access) {
+                           ContainerLevelAccess access) {
         super(ModMenuTypes.RECORD_CHEST.get(), containerId);
         this.access = access;
         this.player = player;
@@ -43,6 +45,11 @@ public class RecordChestMenu extends AbstractContainerMenu implements CustomSlot
         this.recordStorage = handler;
 
         this.addPlayerInventory(playerInventory);
+
+    }
+
+    public RecordListModel getModel() {
+        return this.model;
     }
 
     private void addPlayerInventory(Inventory playerInventory) {
@@ -115,36 +122,61 @@ public class RecordChestMenu extends AbstractContainerMenu implements CustomSlot
 
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
-        ItemStack itemstack = ItemStack.EMPTY;
-        Slot slot = this.slots.get(index);
-        if (slot != null && slot.hasItem()) {
-            ItemStack slotStack = slot.getItem();
-            itemstack = slotStack.copy();
+        // The quick moved slot stack
+        ItemStack quickMovedStack = ItemStack.EMPTY;
+        // The quick moved slot
+        Slot quickMovedSlot = this.slots.get(index);
 
-            if (index >= 36) {
-                // From record storage to player inventory
-                if (!this.moveItemStackTo(slotStack, 0, 36, true)) {
-                    return ItemStack.EMPTY;
-                }
-            } else {
-                // From player inventory to record storage
-                if (recordStorage.isItemValid(0, slotStack)) {
-                    ItemStack remainder = ItemHandlerHelper.insertItemStacked(recordStorage, slotStack, false);
-                    if (!remainder.isEmpty()) {
+
+        // If the slot is in the valid range and the slot is not empty
+        if (quickMovedSlot != null && quickMovedSlot.hasItem()) {
+            // Get the raw stack to move
+            ItemStack rawStack = quickMovedSlot.getItem();
+            // Set the slot stack to a copy of the raw stack
+            quickMovedStack = rawStack.copy();
+
+            // Try move to storage
+            rawStack = this.recordStorage.insetAuto(rawStack, false);
+            if (!rawStack.isEmpty()) {
+                // Try to move the inventory/hotbar slot into the data inventory input slots
+                if (!this.moveItemStackTo(rawStack, 0, 0, false)) {
+                    // If cannot move and in player inventory slot, try to move to hotbar
+                    if (index < 27) {
+                        if (!this.moveItemStackTo(rawStack, 27, 27 + 9, false)) {
+                            // If cannot move, no longer quick move
+                            return ItemStack.EMPTY;
+                        }
+                    }
+                    // Else try to move hotbar into player inventory slot
+                    else if (!this.moveItemStackTo(rawStack, 0, 27, false)) {
+                        // If cannot move, no longer quick move
                         return ItemStack.EMPTY;
                     }
-                    slot.set(remainder);
                 }
             }
 
-            if (slotStack.isEmpty()) {
-                slot.set(ItemStack.EMPTY);
-            } else {
-                slot.setChanged();
-            }
-        }
 
-        return itemstack;
+            if (rawStack.isEmpty()) {
+                // If the raw stack has completely moved out of the slot, set the slot to the empty stack
+                quickMovedSlot.set(ItemStack.EMPTY);
+            } else {
+                // Otherwise, notify the slot that that the stack count has changed
+                quickMovedSlot.setChanged();
+            }
+
+            /*
+                The following if statement and Slot#onTake call can be removed if the
+                menu does not represent a container that can transform stacks (e.g.
+                chests).
+            */
+            if (rawStack.getCount() == quickMovedStack.getCount()) {
+                // If the raw stack was not able to be moved to another slot, no longer quick move
+                return ItemStack.EMPTY;
+            }
+            // Execute logic on what to do post move with the remaining stack
+            quickMovedSlot.onTake(player, rawStack);
+        }
+        return quickMovedStack; // Return the slot stack
     }
 
     @Override
@@ -157,49 +189,90 @@ public class RecordChestMenu extends AbstractContainerMenu implements CustomSlot
 
 
     public void handleSyncCustomSlot(int slotType, int slotId, ItemStack itemStack) {
-        if(slotType == 0) {
+        if (slotType == 0) {
             this.recordStorage.setStackInSlot(slotId, itemStack);
         }
     }
 
-    @Override
-    public void handleCustomSlotAction(IPayloadContext ctx, CustomSlotAction hexSlotAction) {
-        
-    }
 
-    @Override
-    public void onUpdated() {
-        this.updateRecordCount();
-
-    }
-
-    private int recordCount = 0;
-    private int[] recordMapping = new int[0];
-
-    public void updateRecordCount() {
-        this.recordCount = 0;
-        if(this.recordMapping.length != this.recordStorage.getSlots()) {
-            this.recordMapping = new int[this.recordStorage.getSlots()];
+    private ItemStack takeCustomSlotItem(int slotType, int slotId, int takeCount) {
+        if (slotType != 0) {
+            return ItemStack.EMPTY;
         }
-        for(int i = 0; i < this.recordStorage.getSlots(); i++) {
-            if(!this.recordStorage.getStackInSlot(i).isEmpty()) {
-                this.recordMapping[this.recordCount] = i;
-                this.recordCount++;
+        ItemStack slotItem = this.recordStorage.getStackInSlot(slotId);
+        takeCount = Math.min(takeCount, slotItem.getMaxStackSize());
+        takeCount = Math.min(takeCount, slotItem.getCount());
+
+        if (slotItem.isEmpty() || takeCount <= 0) {
+            return ItemStack.EMPTY;
+        }
+
+        return this.recordStorage.extractItem(slotId, takeCount, false);
+    }
+
+    private ItemStack insertCustomSlotItem(int slotType, int slotId, ItemStack stack) {
+        if (slotType != 0) {
+            return stack;
+        }
+        return this.recordStorage.insetAuto(stack, false);
+    }
+
+    @Override
+    public void handleCustomSlotAction(IPayloadContext ctx, CustomSlotAction action) {
+        ItemStack carried = this.getCarried();
+
+        if (action.slotGroup() != 0) {
+            return;
+        }
+
+
+        ItemStack slotItem = this.recordStorage.getStackInSlot(action.slotId());
+
+        int takeCount = 0;
+        if (!slotItem.isEmpty()) {
+            switch (action.pickType()) {
+                case SINGLE -> takeCount = 1;
+                case HALF -> takeCount = slotItem.getCount() / 2;
+                case ALL -> takeCount = slotItem.getCount();
+            }
+        }
+
+
+        switch (action.action()) {
+            case PICK_OR_REPLACE -> {
+                if (carried.isEmpty()) {
+                    if (slotItem.isEmpty()) {
+                        return;
+                    }
+                    ItemStack taken = this.takeCustomSlotItem(action.slotGroup(), action.slotId(), takeCount);
+                    this.setCarried(taken);
+                } else {
+                    ItemStack taken = this.insertCustomSlotItem(action.slotGroup(), action.slotId(), carried);
+                    this.setCarried(taken);
+                }
+            }
+
+            case QUICK_MOVE -> {
+                if (slotItem.isEmpty()) {
+                    return;
+                }
+
+                if (this.moveItemStackTo(slotItem, 0, 36, false)) {
+                    this.recordStorage.setStackInSlot(action.slotId(), ItemStack.EMPTY);
+                }
+            }
+
+            case CLEAR -> {
+                // Ignore
             }
         }
     }
 
-
-
-    public int getRecordCount() {
-        return this.recordCount;
-    }
-
-    public ItemStack getRecordStack(int slotIndex) {
-        if(slotIndex >= 0 && slotIndex < this.recordCount) {
-            return this.recordStorage.getStackInSlot(this.recordMapping[slotIndex]);
-        } else {
-            return ItemStack.EMPTY;
+    @Override
+    public void onUpdated() {
+        if (this.model != null) {
+            this.model.update();
         }
+
     }
 }

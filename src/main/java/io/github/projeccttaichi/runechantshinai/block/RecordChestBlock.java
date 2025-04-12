@@ -5,7 +5,9 @@ import io.github.projeccttaichi.runechantshinai.block.entity.RecordChestBlockEnt
 import io.github.projeccttaichi.runechantshinai.init.ModBlockEntities;
 import io.github.projeccttaichi.runechantshinai.init.ModMenuTypes;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -21,7 +23,7 @@ import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class RecordChestBlock extends BaseEntityBlock implements IBlockCapabilityProvider<IItemHandler, Void> {
+public class RecordChestBlock extends BaseEntityBlock implements IBlockCapabilityProvider<IItemHandler, Direction> {
     public static final MapCodec<RecordChestBlock> CODEC = simpleCodec(RecordChestBlock::new);
 
     public RecordChestBlock(Properties properties) {
@@ -61,6 +63,10 @@ public class RecordChestBlock extends BaseEntityBlock implements IBlockCapabilit
         if (!state.is(newState.getBlock())) {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof RecordChestBlockEntity recordChest) {
+                for(int i = 0; i < recordChest.getSize(); i++) {
+                    Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), recordChest.getItem(i));
+                }
+                level.updateNeighbourForOutputSignal(pos, state.getBlock());
                 recordChest.clearContent();
             }
             super.onRemove(state, level, pos, newState, isMoving);
@@ -69,7 +75,7 @@ public class RecordChestBlock extends BaseEntityBlock implements IBlockCapabilit
 
     @Nullable
     @Override
-    public IItemHandler getCapability(Level level, BlockPos pos, BlockState state, @Nullable BlockEntity be, Void context) {
+    public IItemHandler getCapability(Level level, BlockPos pos, BlockState state, @Nullable BlockEntity be, Direction context) {
         if (be instanceof RecordChestBlockEntity recordChest) {
             return recordChest.getInventory();
         }

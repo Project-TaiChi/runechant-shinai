@@ -350,8 +350,8 @@ public class RecordAssemblerMenu extends AbstractContainerMenu implements Custom
     }
 
 
-    private static final int SLOT_GROUP_HEX = 0;
-    private static final int SLOT_GROUP_STORAGE = 1;
+    public static final int SLOT_GROUP_HEX = 0;
+    public static final int SLOT_GROUP_STORAGE = 1;
 
     @Override
     public void handleCustomSlotAction(IPayloadContext ctx, CustomSlotAction hexSlotAction) {

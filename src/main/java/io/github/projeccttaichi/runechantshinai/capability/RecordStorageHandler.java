@@ -51,6 +51,10 @@ public class RecordStorageHandler implements IItemHandlerModifiable, INBTSeriali
 
     @Override
     public void setStackInSlot(int i, ItemStack itemStack) {
+        if(itemStack.isEmpty()) {
+            entries.set(i, ItemStack.EMPTY);
+            return;
+        }
         if (isRecord(itemStack, i)) {
             entries.set(i, itemStack);
         }

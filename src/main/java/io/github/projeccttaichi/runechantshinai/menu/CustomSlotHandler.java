@@ -10,4 +10,5 @@ public interface CustomSlotHandler {
     void handleCustomSlotAction(IPayloadContext ctx, CustomSlotAction hexSlotAction);
 
     void onUpdated();
+
 }
