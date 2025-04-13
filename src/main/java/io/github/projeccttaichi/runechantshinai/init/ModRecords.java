@@ -2,6 +2,7 @@ package io.github.projeccttaichi.runechantshinai.init;
 
 import io.github.projeccttaichi.runechantshinai.constants.Ids;
 import io.github.projeccttaichi.runechantshinai.magic.record.BaseRecord;
+import io.github.projeccttaichi.runechantshinai.magic.record.RecordType;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.neoforged.bus.api.IEventBus;
@@ -38,12 +39,15 @@ public class ModRecords {
 
         // generate 100 test records
         for (int i = 0; i < 100; i++) {
-            RECORDS.register("test_" + i, BaseRecord::new);
+            String name = "test_" + i;
+            RECORDS.register(name, () -> {
+                return new BaseRecord(name, RecordType.Cast);
+            });
         }
     }
 
     public static final DeferredRegister<BaseRecord> RECORDS = DeferredRegister.create(RECORD_REGISTRY, Ids.MOD_ID);
-    public static final Supplier<BaseRecord> SPELL_FIRE_BALL = RECORDS.register("fire_ball", BaseRecord::new);
-    public static final Supplier<BaseRecord> SPELL_WATER_FLOW = RECORDS.register("water_flow", BaseRecord::new);
+//    public static final Supplier<BaseRecord> SPELL_FIRE_BALL = RECORDS.register("fire_ball", BaseRecord::new);
+//    public static final Supplier<BaseRecord> SPELL_WATER_FLOW = RECORDS.register("water_flow", BaseRecord::new);
 
 }

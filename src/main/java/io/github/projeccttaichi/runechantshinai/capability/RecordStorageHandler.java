@@ -31,6 +31,18 @@ public class RecordStorageHandler implements IItemHandlerModifiable, INBTSeriali
         this.entries = NonNullList.withSize(ModRecords.RECORD_REGISTRY.size(), ItemStack.EMPTY);
     }
 
+    public static final RecordStorageHandler EMPTY = new RecordStorageHandler() {
+        @Override
+        public boolean isValid() {
+            return false;
+        }
+    };
+
+
+    public boolean isValid() {
+        return true;
+    }
+
     private static ResourceLocation getRecordName(int index) {
         BaseRecord record = ModRecords.RECORD_REGISTRY.byId(index);
         if (record == null) {
@@ -51,7 +63,7 @@ public class RecordStorageHandler implements IItemHandlerModifiable, INBTSeriali
 
     @Override
     public void setStackInSlot(int i, ItemStack itemStack) {
-        if(itemStack.isEmpty()) {
+        if (itemStack.isEmpty()) {
             entries.set(i, ItemStack.EMPTY);
             return;
         }
@@ -67,6 +79,9 @@ public class RecordStorageHandler implements IItemHandlerModifiable, INBTSeriali
 
     @Override
     public ItemStack getStackInSlot(int i) {
+        if (!isValid()) {
+            return ItemStack.EMPTY;
+        }
         if (i < 0 || i >= entries.size()) {
             return ItemStack.EMPTY;
         }
@@ -75,6 +90,9 @@ public class RecordStorageHandler implements IItemHandlerModifiable, INBTSeriali
 
     @Override
     public ItemStack insertItem(int index, ItemStack itemStack, boolean simulate) {
+        if (!isValid()) {
+            return itemStack;
+        }
         if (index < 0 || index >= entries.size()) {
             return itemStack;
         }
@@ -105,6 +123,9 @@ public class RecordStorageHandler implements IItemHandlerModifiable, INBTSeriali
     }
 
     public ItemStack insetAuto(ItemStack stack, boolean simulate) {
+        if (!isValid()) {
+            return stack;
+        }
 
         var component = stack.get(ModComponents.RECORD_COMPONENT.get());
 
@@ -127,6 +148,9 @@ public class RecordStorageHandler implements IItemHandlerModifiable, INBTSeriali
 
     @Override
     public ItemStack extractItem(int index, int amount, boolean simulate) {
+        if (!isValid()) {
+            return ItemStack.EMPTY;
+        }
         if (index < 0 || index >= entries.size()) {
             return ItemStack.EMPTY;
         }
@@ -162,17 +186,27 @@ public class RecordStorageHandler implements IItemHandlerModifiable, INBTSeriali
 
     @Override
     public boolean isItemValid(int i, ItemStack itemStack) {
-        return true;
+        if (!isValid()) {
+            return false;
+        }
+        if (i < 0 || i >= entries.size()) {
+            return false;
+        }
+        if (itemStack.isEmpty()) {
+            return true;
+        }
+
+        return isRecord(itemStack, i);
     }
 
     public static final Codec<ItemStack> NON_LIMIT_ITEM_CODEC = Codec.lazyInitialized(
             () -> RecordCodecBuilder.create(
                     p_347288_ -> p_347288_.group(
-                            ItemStack.ITEM_NON_AIR_CODEC.fieldOf("id").forGetter(ItemStack::getItemHolder),
-                            Codec.INT.fieldOf("count").orElse(1).forGetter(ItemStack::getCount),
-                            DataComponentPatch.CODEC
-                                    .optionalFieldOf("components", DataComponentPatch.EMPTY)
-                                    .forGetter(ItemStack::getComponentsPatch))
+                                    ItemStack.ITEM_NON_AIR_CODEC.fieldOf("id").forGetter(ItemStack::getItemHolder),
+                                    Codec.INT.fieldOf("count").orElse(1).forGetter(ItemStack::getCount),
+                                    DataComponentPatch.CODEC
+                                            .optionalFieldOf("components", DataComponentPatch.EMPTY)
+                                            .forGetter(ItemStack::getComponentsPatch))
                             .apply(p_347288_, ItemStack::new)));
 
     public CompoundTag serializeNBT(HolderLookup.Provider provider) {
@@ -203,6 +237,11 @@ public class RecordStorageHandler implements IItemHandlerModifiable, INBTSeriali
         for (int i = 0; i < tagList.size(); ++i) {
             CompoundTag itemTags = tagList.getCompound(i);
             String name = itemTags.getString("Name");
+
+            if (!ModRecords.RECORD_REGISTRY.containsKey(ResourceLocation.parse(name))) {
+                LOGGER.warn("Tried to load invalid record: '{}'", name);
+                continue;
+            }
 
             int slot = ModRecords.RECORD_REGISTRY.getId(ResourceLocation.parse(name));
 

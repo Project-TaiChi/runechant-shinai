@@ -1,7 +1,6 @@
 package io.github.projeccttaichi.runechantshinai.network.c2s;
 
 import io.github.projeccttaichi.runechantshinai.menu.CustomSlotHandler;
-import io.github.projeccttaichi.runechantshinai.menu.RecordAssemblerMenu;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -19,7 +18,7 @@ public record CustomSlotAction(
         int slotGroup,
         int slotId,
         Action action,
-        PickType pickType
+        OptType optType
 ) implements CustomPacketPayload {
 
 
@@ -29,10 +28,10 @@ public record CustomSlotAction(
         CLEAR
     }
 
-    public enum PickType {
-        SINGLE,
-        HALF,
-        ALL
+    public enum OptType {
+        LEFT_CLICK,
+        RIGHT_CLICK,
+        MIDDLE_CLICK
     }
 
     public static final IntFunction<Action> ACTION_BY_ID =
@@ -41,10 +40,10 @@ public record CustomSlotAction(
                     Action.values(),
                     ByIdMap.OutOfBoundsStrategy.ZERO
             );
-    public static final IntFunction<PickType> PICK_TYPE_BY_ID =
+    public static final IntFunction<OptType> OPT_TYPE_BY_ID =
             ByIdMap.continuous(
-                    PickType::ordinal,
-                    PickType.values(),
+                    OptType::ordinal,
+                    OptType.values(),
                     ByIdMap.OutOfBoundsStrategy.ZERO
             );
 
@@ -59,8 +58,8 @@ public record CustomSlotAction(
             CustomSlotAction::slotId,
             ByteBufCodecs.idMapper(ACTION_BY_ID, Action::ordinal),
             CustomSlotAction::action,
-            ByteBufCodecs.idMapper(PICK_TYPE_BY_ID, PickType::ordinal),
-            CustomSlotAction::pickType,
+            ByteBufCodecs.idMapper(OPT_TYPE_BY_ID, OptType::ordinal),
+            CustomSlotAction::optType,
             CustomSlotAction::new
     );
 

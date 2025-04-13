@@ -6,6 +6,7 @@ import io.github.projeccttaichi.runechantshinai.init.ModMenuTypes;
 import io.github.projeccttaichi.runechantshinai.network.c2s.CustomSlotAction;
 import io.github.projeccttaichi.runechantshinai.network.s2c.BatchSyncCustomSlots;
 import io.github.projeccttaichi.runechantshinai.network.s2c.SyncCustomSlots;
+import io.github.projeccttaichi.runechantshinai.util.MenuUtils;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -195,27 +196,39 @@ public class RecordChestMenu extends AbstractContainerMenu implements CustomSlot
     }
 
 
-    private ItemStack takeCustomSlotItem(int slotType, int slotId, int takeCount) {
+    private ItemStack takeCustomSlotItem(int slotType, int slotId, CustomSlotAction.OptType optType) {
         if (slotType != 0) {
             return ItemStack.EMPTY;
         }
-        ItemStack slotItem = this.recordStorage.getStackInSlot(slotId);
-        takeCount = Math.min(takeCount, slotItem.getMaxStackSize());
-        takeCount = Math.min(takeCount, slotItem.getCount());
-
-        if (slotItem.isEmpty() || takeCount <= 0) {
-            return ItemStack.EMPTY;
-        }
-
+        ItemStack slotStack = this.recordStorage.getStackInSlot(slotId);
+        int takeCount = MenuUtils.takeItemCountByOpt(slotStack, optType);
         return this.recordStorage.extractItem(slotId, takeCount, false);
     }
 
-    private ItemStack insertCustomSlotItem(int slotType, int slotId, ItemStack stack) {
+    private ItemStack insertCustomSlotItem(int slotType, int slotId, ItemStack stack, CustomSlotAction.OptType optType) {
         if (slotType != 0) {
             return stack;
         }
-        return this.recordStorage.insetAuto(stack, false);
+        switch (optType) {
+            case LEFT_CLICK -> {
+                return this.recordStorage.insetAuto(stack, false);
+            }
+            case RIGHT_CLICK -> {
+
+                ItemStack toInsert = stack.copyWithCount(1);
+                ItemStack rest = this.recordStorage.insetAuto(toInsert, false);
+                if (rest.isEmpty()) {
+                    stack.shrink(1);
+                }
+                return stack;
+
+            }
+            default -> {
+                return stack;
+            }
+        }
     }
+
 
     @Override
     public void handleCustomSlotAction(IPayloadContext ctx, CustomSlotAction action) {
@@ -228,26 +241,18 @@ public class RecordChestMenu extends AbstractContainerMenu implements CustomSlot
 
         ItemStack slotItem = this.recordStorage.getStackInSlot(action.slotId());
 
-        int takeCount = 0;
-        if (!slotItem.isEmpty()) {
-            switch (action.pickType()) {
-                case SINGLE -> takeCount = 1;
-                case HALF -> takeCount = slotItem.getCount() / 2;
-                case ALL -> takeCount = slotItem.getCount();
-            }
-        }
-
 
         switch (action.action()) {
             case PICK_OR_REPLACE -> {
+
                 if (carried.isEmpty()) {
                     if (slotItem.isEmpty()) {
                         return;
                     }
-                    ItemStack taken = this.takeCustomSlotItem(action.slotGroup(), action.slotId(), takeCount);
+                    ItemStack taken = this.takeCustomSlotItem(action.slotGroup(), action.slotId(), action.optType());
                     this.setCarried(taken);
                 } else {
-                    ItemStack taken = this.insertCustomSlotItem(action.slotGroup(), action.slotId(), carried);
+                    ItemStack taken = this.insertCustomSlotItem(action.slotGroup(), action.slotId(), carried, action.optType());
                     this.setCarried(taken);
                 }
             }

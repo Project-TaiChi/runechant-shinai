@@ -31,7 +31,7 @@ public class RecordChestBlock extends BaseEntityBlock implements IBlockCapabilit
     }
 
     @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
+    protected MapCodec<? extends RecordChestBlock> codec() {
         return CODEC;
     }
 

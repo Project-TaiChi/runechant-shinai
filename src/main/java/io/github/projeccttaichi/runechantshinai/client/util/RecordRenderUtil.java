@@ -7,11 +7,11 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
-public class RecordUtil {
+public class RecordRenderUtil {
     public static void renderRecord(GuiGraphics guiGraphics, ItemStack stack, int x, int y) {
         RecordComponent component = stack.get(ModComponents.RECORD_COMPONENT);
         if (component != null) {
-            if(!renderTestRecord(guiGraphics, component.id(), x, y)) {
+            if (!renderTestRecord(guiGraphics, component.id(), x, y)) {
                 guiGraphics.renderItem(stack, x + 1, y + 1);
             }
         }
@@ -53,5 +53,26 @@ public class RecordUtil {
             guiGraphics.pose().popPose();
         }
 
+    }
+
+
+    public static boolean renderFloatingRecord(GuiGraphics guiGraphics, Font font, ItemStack stack, int x, int y) {
+
+        RecordComponent record = stack.get(ModComponents.RECORD_COMPONENT);
+        if (record == null) {
+            return false;
+        }
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(0.0F, 0.0F, 232.0F);
+
+        RecordRenderUtil.renderRecord(guiGraphics, stack, x - 1, y - 1);
+        if (stack.getCount() > 1) {
+            RecordRenderUtil.renderRecordCount(guiGraphics, font, stack.getCount(), x - 1, y - 1);
+        }
+
+
+        guiGraphics.pose().popPose();
+
+        return true;
     }
 }

@@ -84,6 +84,7 @@ public class RecordListModel {
     }
 
 
-
-
+    public boolean valid() {
+        return recordStorage != null && recordStorage.isValid();
+    }
 }

@@ -8,6 +8,11 @@ public class BaseRecord {
     protected String name;
     protected RecordType type;
 
+    public BaseRecord(String name, RecordType type) {
+        this.name = name;
+        this.type = type;
+    }
+
 
     // 魔力消耗
     protected float cost;
@@ -28,4 +33,7 @@ public class BaseRecord {
     protected float delay;
 
 
+    public RecordType getType() {
+        return type;
+    }
 }

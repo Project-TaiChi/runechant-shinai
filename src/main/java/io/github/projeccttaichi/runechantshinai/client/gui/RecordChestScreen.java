@@ -2,12 +2,9 @@ package io.github.projeccttaichi.runechantshinai.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import io.github.projeccttaichi.runechantshinai.client.gui.widget.RecordListView;
-import io.github.projeccttaichi.runechantshinai.client.util.RecordUtil;
-import io.github.projeccttaichi.runechantshinai.compoment.RecordComponent;
-import io.github.projeccttaichi.runechantshinai.init.ModComponents;
+import io.github.projeccttaichi.runechantshinai.client.util.RecordRenderUtil;
 import io.github.projeccttaichi.runechantshinai.menu.RecordChestMenu;
 import io.github.projeccttaichi.runechantshinai.network.c2s.CustomSlotAction;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
@@ -15,7 +12,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import static io.github.projeccttaichi.runechantshinai.constants.Locations.guiLoc;
@@ -92,20 +88,9 @@ public class RecordChestScreen extends AbstractContainerScreen<RecordChestMenu> 
 
     @Override
     protected void renderFloatingItem(GuiGraphics guiGraphics, ItemStack stack, int x, int y, String text) {
-
-        RecordComponent record = stack.get(ModComponents.RECORD_COMPONENT);
-        if(record == null) {
+        if(!RecordRenderUtil.renderFloatingRecord(guiGraphics, font, stack, x, y))  {
             super.renderFloatingItem(guiGraphics, stack, x, y, text);
-            return;
         }
-        guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate(0.0F, 0.0F, 232.0F);
-
-        RecordUtil.renderRecord(guiGraphics, stack, x - 1, y - 1);
-        RecordUtil.renderRecordCount(guiGraphics, font, stack.getCount(), x - 1, y - 1);
-
-
-        guiGraphics.pose().popPose();
     }
 
     @Override
@@ -115,14 +100,14 @@ public class RecordChestScreen extends AbstractContainerScreen<RecordChestMenu> 
         }
 
 
-        CustomSlotAction.PickType pickType = button == 0 ? CustomSlotAction.PickType.ALL : CustomSlotAction.PickType.HALF;
+        CustomSlotAction.OptType optType = button == 0 ? CustomSlotAction.OptType.LEFT_CLICK : CustomSlotAction.OptType.RIGHT_CLICK;
 
         ItemStack carried = this.menu.getCarried();
         if (carried.isEmpty()) {
             if (hasShiftDown()) {
-                PacketDistributor.sendToServer(new CustomSlotAction(this.menu.containerId, slotGroup, slotIndex, CustomSlotAction.Action.QUICK_MOVE, pickType));
+                PacketDistributor.sendToServer(new CustomSlotAction(this.menu.containerId, slotGroup, slotIndex, CustomSlotAction.Action.QUICK_MOVE, optType));
             } else {
-                PacketDistributor.sendToServer(new CustomSlotAction(this.menu.containerId, slotGroup, slotIndex, CustomSlotAction.Action.PICK_OR_REPLACE, pickType));
+                PacketDistributor.sendToServer(new CustomSlotAction(this.menu.containerId, slotGroup, slotIndex, CustomSlotAction.Action.PICK_OR_REPLACE, optType));
             }
             this.skipNextRelease = true;
         } else if (release) {
@@ -131,7 +116,7 @@ public class RecordChestScreen extends AbstractContainerScreen<RecordChestMenu> 
                 return;
             }
             if (!hasShiftDown()) {
-                PacketDistributor.sendToServer(new CustomSlotAction(this.menu.containerId, slotGroup, slotIndex, CustomSlotAction.Action.PICK_OR_REPLACE, pickType));
+                PacketDistributor.sendToServer(new CustomSlotAction(this.menu.containerId, slotGroup, slotIndex, CustomSlotAction.Action.PICK_OR_REPLACE, optType));
 
             }
         }

@@ -1,10 +1,11 @@
 package io.github.projeccttaichi.runechantshinai.util;
 
-import net.minecraft.network.codec.StreamCodec;
 import org.joml.Matrix2d;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class HexGrids {
     public record Axial(int q, int r) {
@@ -38,7 +39,9 @@ public class HexGrids {
         }
 
         public static Axial unpacked(int packed) {
-            return new Axial(packed >> 16, packed & 0xFFFF);
+            int q = packed >> 16;
+            int r = (short) (packed & 0xFFFF);
+            return new Axial(q, r);
         }
 
     }
@@ -181,6 +184,27 @@ public class HexGrids {
             }
         }
         return results;
+    }
+
+    public static Stream<Axial> neighbors(Axial axial) {
+        return Arrays.stream(Direction.directions).map(
+                it -> it.axial().add(axial)
+        );
+    }
+
+    private static final Axial[] INDIRECT_NEIGHBORS = {
+            new Axial(2, -2), new Axial(2, -1),
+            new Axial(2, 0), new Axial(1, 1),
+            new Axial(0, 2), new Axial(-1, 2),
+            new Axial(-2, 2), new Axial(-2, 1),
+            new Axial(-2, 0), new Axial(-1, -1),
+            new Axial(0, -2), new Axial(1, -2)
+    };
+
+    public static Stream<Axial> indirectNeighbors(Axial axial) {
+        return Arrays.stream(INDIRECT_NEIGHBORS).map(
+                it -> it.add(axial)
+        );
     }
 
 

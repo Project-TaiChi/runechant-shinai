@@ -2,7 +2,7 @@ package io.github.projeccttaichi.runechantshinai.client.gui.widget;
 
 import io.github.projeccttaichi.runechantshinai.client.gui.CustomSlotEventHandler;
 import io.github.projeccttaichi.runechantshinai.client.sprites.RecordAssemblerWidgets;
-import io.github.projeccttaichi.runechantshinai.client.util.RecordUtil;
+import io.github.projeccttaichi.runechantshinai.client.util.RecordRenderUtil;
 import io.github.projeccttaichi.runechantshinai.menu.RecordListModel;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -75,12 +75,11 @@ public class RecordListView implements Renderable, GuiEventListener, NarratableE
 
 
     private void renderScrollBarIndicator(GuiGraphics guiGraphics) {
-
         int totalSlots = model.count();
 
         int overflowSlots = totalSlots - (visibleRows * visibleCols);
 
-        int indicatorPos = scrollBarLeft + 1;
+        int indicatorPos = scrollBarTop + 1;
         if (overflowSlots > 0) {
             // compute scroll bar
             int scrollSteps = (overflowSlots + visibleCols - 1) / visibleCols;
@@ -121,8 +120,8 @@ public class RecordListView implements Renderable, GuiEventListener, NarratableE
 
                 ItemStack stack = this.model.getStack(slotIndex);
                 if (!stack.isEmpty()) {
-                    RecordUtil.renderRecord(graphics, stack, x, y);
-                    RecordUtil.renderRecordCount(graphics, font, stack.getCount(), x, y);
+                    RecordRenderUtil.renderRecord(graphics, stack, x, y);
+                    RecordRenderUtil.renderRecordCount(graphics, font, stack.getCount(), x, y);
                 }
 
 
@@ -149,12 +148,19 @@ public class RecordListView implements Renderable, GuiEventListener, NarratableE
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         int maxScroll = (this.model.count() - visibleCols * (visibleRows - 1) - 1) / visibleCols;
+        if(maxScroll <= 0) {
+            this.currentScroll = 0;
+            return true;
+        }
         this.currentScroll = Math.clamp(this.currentScroll - (int) scrollY, 0, maxScroll);
         return true;
     }
 
     @Override
     public boolean isMouseOver(double mouseX, double mouseY) {
+        if(!this.model.valid()) {
+            return false;
+        }
         return mouseX >= this.leftPos && mouseX <= this.leftPos + this.width &&
                 mouseY >= this.topPos && mouseY <= this.topPos + this.height;
     }
