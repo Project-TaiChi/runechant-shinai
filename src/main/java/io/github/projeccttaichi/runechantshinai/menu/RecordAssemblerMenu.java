@@ -185,11 +185,7 @@ public class RecordAssemblerMenu extends AbstractContainerMenu implements Custom
                 PacketDistributor.sendToPlayer((ServerPlayer) this.player, packet);
             }
             case SLOT_GROUP_STORAGE -> {
-                if (stack.isEmpty()) {
-                    this.clientRecordStorage.remove(slotId);
-                } else {
-                    this.clientRecordStorage.set(slotId, stack.copy());
-                }
+                this.clientRecordStorage.set(slotId, stack.copy());
 
                 SyncCustomSlots packet = new SyncCustomSlots(this.containerId, SLOT_GROUP_STORAGE, slotId, stack);
                 PacketDistributor.sendToPlayer((ServerPlayer) this.player, packet);
